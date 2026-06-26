@@ -1,0 +1,22 @@
+{
+  "name": "anonymizer",
+  "description": "Detects and redacts PII (names, Aadhaar, phone, email, medical IDs) from medical documents before they are stored or shared, and flags low-confidence spans for human review.",
+  "version": "1.0.0",
+  "url": "http://localhost:5000/",
+  "defaultInputModes": ["text/plain"],
+  "defaultOutputModes": ["text/plain"],
+  "capabilities": { "streaming": true },
+  "skills": [
+    {
+      "id": "anonymize_document",
+      "name": "Anonymize medical document",
+      "description": "Redact personally identifiable information from medical text and flag uncertain redactions for human approval.",
+      "tags": ["pii", "redaction", "privacy", "anonymize", "compliance"],
+      "examples": [
+        "Anonymize this report: Ramesh Kumar, Aadhaar 1234-5678-9012, seen by Dr. Mehra",
+        "Redact the patient identifiers in this discharge summary",
+        "Remove personal information before I share this prescription"
+      ]
+    }
+  ]
+}

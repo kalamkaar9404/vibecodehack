@@ -1,0 +1,24 @@
+{
+  "name": "retriever",
+  "description": "Answers clinical questions about a patient's medical history using RAG over anonymized records, returning a concise summary with source citations as proof.",
+  "version": "1.0.0",
+  "url": "http://localhost:5000/",
+  "defaultInputModes": ["text/plain"],
+  "defaultOutputModes": ["text/plain"],
+  "capabilities": { "streaming": true },
+  "skills": [
+    {
+      "id": "clinical_qa",
+      "name": "Cited clinical history Q&A",
+      "description": "Retrieve and summarize a patient's medical history with inline source citations.",
+      "tags": ["rag", "retrieval", "clinical", "summary", "citations", "history"],
+      "examples": [
+        "What is the patient's diabetes management history?",
+        "Any history of allergic reactions?",
+        "How has blood pressure been over the past year?",
+        "Pregnancy complications in previous pregnancies?",
+        "Is this patient safe for general anaesthesia?"
+      ]
+    }
+  ]
+}

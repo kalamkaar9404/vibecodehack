@@ -1,0 +1,41 @@
+# Runs all 3 MedSync A2A agents together on a shared network.
+# For local dev / testing without the full Nasiko stack. Each agent also has
+# its own docker-compose.yml for individual deployment into Nasiko.
+#
+#   GOOGLE_API_KEY=... docker compose up --build
+#
+# Agent cards: http://localhost:5001|5002|5003/.well-known/agent-card.json
+services:
+  anonymizer:
+    build: ./anonymizer
+    container_name: medsync-anonymizer
+    ports: ["5001:5000"]
+    environment:
+      - GOOGLE_GENAI_USE_VERTEXAI=FALSE
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - MEDSYNC_MODEL=${MEDSYNC_MODEL:-gemini-2.5-flash}
+    networks: [agents-net]
+
+  retriever:
+    build: ./retriever
+    container_name: medsync-retriever
+    ports: ["5002:5000"]
+    environment:
+      - GOOGLE_GENAI_USE_VERTEXAI=FALSE
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - MEDSYNC_MODEL=${MEDSYNC_MODEL:-gemini-2.5-flash}
+    networks: [agents-net]
+
+  diet:
+    build: ./diet
+    container_name: medsync-diet
+    ports: ["5003:5000"]
+    environment:
+      - GOOGLE_GENAI_USE_VERTEXAI=FALSE
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - MEDSYNC_MODEL=${MEDSYNC_MODEL:-gemini-2.5-flash}
+    networks: [agents-net]
+
+networks:
+  agents-net:
+    driver: bridge

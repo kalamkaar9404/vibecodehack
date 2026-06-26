@@ -1,0 +1,23 @@
+{
+  "name": "diet",
+  "description": "Suggests nutritionally-equivalent, affordable, locally-available Indian substitutes for prescribed meal-plan ingredients, respecting dietary preferences and medical safety (pregnancy, diabetes).",
+  "version": "1.0.0",
+  "url": "http://localhost:5000/",
+  "defaultInputModes": ["text/plain"],
+  "defaultOutputModes": ["text/plain"],
+  "capabilities": { "streaming": true },
+  "skills": [
+    {
+      "id": "diet_substitution",
+      "name": "Indian ingredient substitution",
+      "description": "Swap expensive or unavailable ingredients for affordable local Indian alternatives with matched nutrition.",
+      "tags": ["diet", "nutrition", "substitution", "ingredients", "recipe", "indian"],
+      "examples": [
+        "I can't find quinoa or avocado, and chia seeds are too expensive",
+        "Suggest a local substitute for kale, I'm vegetarian",
+        "My dietician prescribed a tofu and almond milk smoothie but I'm on a budget",
+        "Swap these for pregnancy-safe Indian options"
+      ]
+    }
+  ]
+}
