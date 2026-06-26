@@ -4,9 +4,10 @@
 > Last updated: **2026-06-26**
 > Workflow target: `Gemini CLI + ADK → Nasiko → Cloud Run`
 
-**Overall progress: ~30–35%.** The hardest, most differentiating piece — real
-agent engineering with **ADK + A2A** — is built and verified. Deployment,
-Vertex AI depth, and the live Nasiko orchestration are the main gaps.
+**Overall progress: ~40%.** The hardest, most differentiating pieces — real
+agent engineering with **ADK + A2A**, plus a working **memory layer** — are built
+and verified. Deployment, Vertex AI depth, and the live Nasiko orchestration are
+the main gaps.
 
 ---
 
@@ -76,12 +77,12 @@ its agent card at HTTP 200.
 | Agent 2 Retriever | ~55% | ADK + cited RAG; **no Vertex embeddings / Firestore** |
 | Agent 3 Diet | ~70% | ADK + nutrition KB + safety; KB is a focused subset |
 | Orchestrator (Nasiko) | ~25% | cloned + configured; not running, agents not registered |
-| Memory layer | ~5% | designed only; in-memory, no `lib/memory.js` |
+| Memory layer | ~80% | **built + verified** — `memory-service/` (FastAPI, 4 tiers, Gemini embeddings + fallback); all 3 agents read-before/write-after via ADK callbacks; cross-session "learns once" loop confirmed. Remaining: Firestore backend + UI surfacing |
 | HITL gate | ~40% | agent flags correctly; no `/api/review` endpoints or UI |
 | Remaining UI (dashboard, doctor chat, upload, records, review queue) | ~10% | only diet exists; **login still 404s** |
 | Google infra (Firestore/Storage/DocAI/Auth/Vertex) | ~3% | |
 | Cloud Run deployment | 0% | mandatory, not begun |
-| **Overall** | **~30–35%** | |
+| **Overall** | **~40%** | |
 
 ---
 
@@ -91,7 +92,7 @@ its agent card at HTTP 200.
 2. **Bring up Nasiko** — start Docker Desktop, `docker compose -f docker-compose.local.yml --env-file .nasiko-local.env up -d`, register the 3 agents, configure the router (needs an OpenAI-compatible key — see below).
 3. **Vertex AI in Agent 2** — swap lexical search for `text-embedding-004` to earn the Vertex depth score.
 4. **Wire the UI to the agents** (via Nasiko `/router`, with `/api/*` demo fallbacks).
-5. **Memory layer** (`lib/memory.js` + Firestore) and **HITL endpoints/UI** (`/api/review/*`, ReviewQueue).
+5. ~~Memory layer~~ ✅ **done** (`memory-service/`) — remaining: Firestore backend + surface memory in the UI. **HITL endpoints/UI** (`/api/review/*`, ReviewQueue) still to do.
 6. **Remaining UI pages** — main dashboard (fixes the post-login 404), doctor chat, upload, records.
 7. **Real Firebase Auth, Document AI, Cloud Storage, Cloud Logging.**
 8. (Optional) **Gemini CLI** to satisfy the literal Track B authoring workflow.

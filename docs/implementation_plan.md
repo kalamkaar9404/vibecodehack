@@ -157,6 +157,9 @@ gcloud run deploy medsync-ai --source . --region=asia-south1 --allow-unauthentic
 ### Why a Memory Layer?
 Stateless agents re-read everything on every request and forget what the patient told them five minutes ago. A medical platform must **remember** — the patient's conditions, what a doctor already asked, and that *"the patient dislikes dalia."* The Memory Layer is the shared substrate all 3 agents read **before** acting and write **after**, keyed by `patientId` (the orchestrator passes this on every routed call).
 
+> [!NOTE]
+> **Implemented** as a standalone `memory-service/` (FastAPI, keyed by `patientId`) rather than an in-agent library, so the 3 separate agent containers share one source of truth. Agents integrate via ADK `before_agent_callback` (recall → inject a `[PATIENT MEMORY]` block) and `after_agent_callback` (consolidate → write facts). Semantic tier uses Gemini `text-embedding-004` with a deterministic fallback; persistence is a JSON volume today, swappable to Firestore. The cross-session "learns once" loop (dislike dalia in one session → skipped in the next) is verified.
+
 ### Four Tiers of Memory
 
 | Tier | Lifespan | Store | What it holds |

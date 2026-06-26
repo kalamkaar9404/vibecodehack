@@ -1,40 +1,62 @@
-# Runs all 3 MedSync A2A agents together on a shared network.
+# Runs the 3 MedSync A2A agents + the shared memory service together.
 # For local dev / testing without the full Nasiko stack. Each agent also has
 # its own docker-compose.yml for individual deployment into Nasiko.
 #
 #   GOOGLE_API_KEY=... docker compose up --build
 #
 # Agent cards: http://localhost:5001|5002|5003/.well-known/agent-card.json
+# Memory API:  http://localhost:8090/health
 services:
+  memory:
+    build: ../memory-service
+    container_name: medsync-memory
+    ports: ["8090:8090"]
+    environment:
+      - MEMORY_DATA_PATH=/data/memory.json
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}   # enables real text-embedding-004
+      - MEMORY_EMBED_MODEL=${MEMORY_EMBED_MODEL:-text-embedding-004}
+    volumes:
+      - memory-data:/data
+    networks: [agents-net]
+
   anonymizer:
     build: ./anonymizer
     container_name: medsync-anonymizer
     ports: ["5001:5000"]
+    depends_on: [memory]
     environment:
       - GOOGLE_GENAI_USE_VERTEXAI=FALSE
       - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
       - MEDSYNC_MODEL=${MEDSYNC_MODEL:-gemini-2.5-flash}
+      - MEMORY_URL=http://memory:8090
     networks: [agents-net]
 
   retriever:
     build: ./retriever
     container_name: medsync-retriever
     ports: ["5002:5000"]
+    depends_on: [memory]
     environment:
       - GOOGLE_GENAI_USE_VERTEXAI=FALSE
       - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
       - MEDSYNC_MODEL=${MEDSYNC_MODEL:-gemini-2.5-flash}
+      - MEMORY_URL=http://memory:8090
     networks: [agents-net]
 
   diet:
     build: ./diet
     container_name: medsync-diet
     ports: ["5003:5000"]
+    depends_on: [memory]
     environment:
       - GOOGLE_GENAI_USE_VERTEXAI=FALSE
       - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
       - MEDSYNC_MODEL=${MEDSYNC_MODEL:-gemini-2.5-flash}
+      - MEMORY_URL=http://memory:8090
     networks: [agents-net]
+
+volumes:
+  memory-data:
 
 networks:
   agents-net:

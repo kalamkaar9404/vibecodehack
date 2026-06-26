@@ -12,6 +12,7 @@ import re
 
 from google.adk.agents import LlmAgent
 
+from . import memory
 from .records import CHUNKS
 
 MODEL = os.environ.get("MEDSYNC_MODEL", "gemini-2.5-flash")
@@ -76,6 +77,28 @@ def search_records(query: str, patient_id: str = "anon_7a3f", top_k: int = 3) ->
     return {"query": query, "citations": citations, "count": len(citations)}
 
 
+BASE_INSTRUCTION = (
+    "You are MedSync's Smart Retrieval Agent for clinicians. For any "
+    "question about a patient, ALWAYS call `search_records` first. Then "
+    "write a concise (<150 word) summary that answers the question, and "
+    "cite EVERY clinical claim inline using the source, e.g. "
+    "'[Source: Lab Report, SRL Diagnostics, pg 1]'. Only use facts present "
+    "in the returned citations — never invent clinical details. If the patient "
+    "memory shows this was discussed before, acknowledge it briefly. If nothing "
+    "relevant is found, say so. End with 1-2 suggested follow-up questions."
+)
+
+
+def _consolidate(ctx):
+    """after_agent_callback: store the question as a semantic memory so future
+    sessions can recall what was already asked."""
+    pid = memory.patient_id_of(ctx)
+    q = memory.user_text(ctx)
+    if q:
+        memory.remember_semantic(pid, f"Clinician asked: {q}", {"agent": "retriever"}, by="retriever")
+    return None
+
+
 root_agent = LlmAgent(
     name="retriever",
     model=MODEL,
@@ -84,14 +107,8 @@ root_agent = LlmAgent(
         "anonymized records, returning a concise summary with source citations "
         "as verifiable proof."
     ),
-    instruction=(
-        "You are MedSync's Smart Retrieval Agent for clinicians. For any "
-        "question about a patient, ALWAYS call `search_records` first. Then "
-        "write a concise (<150 word) summary that answers the question, and "
-        "cite EVERY clinical claim inline using the source, e.g. "
-        "'[Source: Lab Report, SRL Diagnostics, pg 1]'. Only use facts present "
-        "in the returned citations — never invent clinical details. If nothing "
-        "relevant is found, say so. End with 1-2 suggested follow-up questions."
-    ),
+    instruction=memory.instruction_with_memory(BASE_INSTRUCTION),
+    before_agent_callback=memory.recall_callback,
+    after_agent_callback=_consolidate,
     tools=[search_records],
 )

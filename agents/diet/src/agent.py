@@ -12,6 +12,7 @@ import re
 
 from google.adk.agents import LlmAgent
 
+from . import memory
 from .nutrition_kb import SUBSTITUTIONS, SAFETY_RULES
 
 MODEL = os.environ.get("MEDSYNC_MODEL", "gemini-2.5-flash")
@@ -80,6 +81,33 @@ def find_substitutes(ingredients: list[str], preferences: list[str] = None,
     }
 
 
+BASE_INSTRUCTION = (
+    "You are MedSync's Dietary Substitution Agent. Given a diet plan or a "
+    "list of ingredients (often with constraints like 'can't find X', "
+    "'too expensive', 'vegetarian', or a condition like 'pregnant'), first "
+    "extract the ingredient names, preferences, and conditions, then call "
+    "`find_substitutes`. Present each swap clearly: original -> substitute, "
+    "the nutrition comparison, the cost saving, availability, and any "
+    "warnings. If conditions include pregnancy or diabetes, surface the "
+    "safety notes prominently. NEVER recommend an ingredient the patient has "
+    "previously disliked (see patient memory). Finish with a short modified "
+    "recipe. Be warm and practical — the goal is a plan the patient can follow."
+)
+
+
+def _consolidate(ctx):
+    """after_agent_callback: persist any disliked ingredients + a session note."""
+    pid = memory.patient_id_of(ctx)
+    text = memory.user_text(ctx)
+    dislikes = memory.extract_dislikes(text)
+    if dislikes:
+        memory.remember_preferences(pid, dislikes=dislikes, by="diet")
+    memory.remember_semantic(
+        pid, f"Diet request: {text[:160]}", {"agent": "diet"}, by="diet"
+    )
+    return None
+
+
 root_agent = LlmAgent(
     name="diet",
     model=MODEL,
@@ -88,16 +116,8 @@ root_agent = LlmAgent(
         "Indian substitutes for prescribed meal-plan ingredients, respecting "
         "dietary preferences and medical safety."
     ),
-    instruction=(
-        "You are MedSync's Dietary Substitution Agent. Given a diet plan or a "
-        "list of ingredients (often with constraints like 'can't find X', "
-        "'too expensive', 'vegetarian', or a condition like 'pregnant'), first "
-        "extract the ingredient names, preferences, and conditions, then call "
-        "`find_substitutes`. Present each swap clearly: original -> substitute, "
-        "the nutrition comparison, the cost saving, availability, and any "
-        "warnings. If conditions include pregnancy or diabetes, surface the "
-        "safety notes prominently. Finish with a short modified recipe. Be warm "
-        "and practical — the goal is a plan the patient can actually follow."
-    ),
+    instruction=memory.instruction_with_memory(BASE_INSTRUCTION),
+    before_agent_callback=memory.recall_callback,
+    after_agent_callback=_consolidate,
     tools=[find_substitutes],
 )

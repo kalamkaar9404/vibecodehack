@@ -16,6 +16,8 @@ import uuid
 
 from google.adk.agents import LlmAgent
 
+from . import memory
+
 MODEL = os.environ.get("MEDSYNC_MODEL", "gemini-2.5-flash")
 REVIEW_LOW, REVIEW_HIGH = 0.70, 0.90
 
@@ -121,6 +123,38 @@ def apply_redaction(text: str, redaction_level: str = "strict") -> dict:
     }
 
 
+BASE_INSTRUCTION = (
+    "You are MedSync's Anonymization Agent. When given medical document "
+    "text, ALWAYS call the `apply_redaction` tool. Then report, clearly:\n"
+    "1. How many PII entities were found and their types.\n"
+    "2. The anonymized text.\n"
+    "3. Which entities are FLAGGED FOR HUMAN REVIEW (confidence 70-90%) and "
+    "why — these must be approved by a person before the document can be "
+    "shared. If the status is NEEDS_REVIEW, make this prominent.\n"
+    "Never reveal the reversible mapping unless explicitly asked by an "
+    "authorized user. Be concise and factual — this is a medical compliance task."
+)
+
+# clinical conditions worth promoting into the patient profile when seen in a doc
+_CONDITION_HINTS = {
+    "diabetes": "Diabetes", "gestational": "Gestational diabetes",
+    "hypertension": "Hypertension", "anaemia": "Anaemia", "anemia": "Anaemia",
+    "asthma": "Asthma", "thyroid": "Thyroid disorder",
+}
+
+
+def _consolidate(ctx):
+    """after_agent_callback: record that a document was anonymized and promote
+    any clinical conditions found in the text into the patient profile."""
+    pid = memory.patient_id_of(ctx)
+    text = memory.user_text(ctx)
+    found = sorted({label for key, label in _CONDITION_HINTS.items() if key in text.lower()})
+    if found:
+        memory.remember_profile(pid, {"conditions": found}, by="anonymizer")
+    memory.remember_semantic(pid, "A medical document was anonymized and reviewed.", {"agent": "anonymizer"}, by="anonymizer")
+    return None
+
+
 root_agent = LlmAgent(
     name="anonymizer",
     model=MODEL,
@@ -129,16 +163,8 @@ root_agent = LlmAgent(
         "medical documents before they are stored or shared, flagging "
         "low-confidence spans for human review."
     ),
-    instruction=(
-        "You are MedSync's Anonymization Agent. When given medical document "
-        "text, ALWAYS call the `apply_redaction` tool. Then report, clearly:\n"
-        "1. How many PII entities were found and their types.\n"
-        "2. The anonymized text.\n"
-        "3. Which entities are FLAGGED FOR HUMAN REVIEW (confidence 70-90%) and "
-        "why — these must be approved by a person before the document can be "
-        "shared. If the status is NEEDS_REVIEW, make this prominent.\n"
-        "Never reveal the reversible mapping unless explicitly asked by an "
-        "authorized user. Be concise and factual — this is a medical compliance task."
-    ),
+    instruction=memory.instruction_with_memory(BASE_INSTRUCTION),
+    before_agent_callback=memory.recall_callback,
+    after_agent_callback=_consolidate,
     tools=[detect_pii, apply_redaction],
 )
