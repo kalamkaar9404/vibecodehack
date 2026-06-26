@@ -1,0 +1,23 @@
+{
+  "name": "followup",
+  "description": "Post-treatment follow-up companion: checks in on the patient after starting a treatment, tracks medication side effects over time, and escalates serious reactions early. Supportive monitoring, not a diagnosis.",
+  "version": "1.0.0",
+  "url": "http://localhost:5000/",
+  "defaultInputModes": ["text/plain"],
+  "defaultOutputModes": ["text/plain"],
+  "capabilities": { "streaming": true },
+  "skills": [
+    {
+      "id": "side_effect_followup",
+      "name": "Post-treatment side-effect check-in",
+      "description": "Conversational follow-up that detects, assesses, and logs medication side effects, escalating dangerous ones early.",
+      "tags": ["follow-up", "side-effects", "medication", "monitoring", "check-in", "safety", "post-treatment"],
+      "examples": [
+        "Check in on how I'm doing with my medication",
+        "I've been feeling nauseous since starting metformin",
+        "Track my side effects after treatment",
+        "I started feeling muscle pain and weakness on my new medicine"
+      ]
+    }
+  ]
+}

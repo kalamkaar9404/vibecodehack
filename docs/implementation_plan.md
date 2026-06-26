@@ -605,6 +605,55 @@ out: { category, label, confidence, likely_cause, soothing_tips[], escalate, saf
 
 ---
 
+## Agent 5: 🔔 Post-Treatment Follow-up Agent
+
+### Purpose
+Side effects often surface *after* the patient leaves the clinic — and a dangerous
+one (e.g. lactic acidosis on metformin, bleeding on warfarin) can escalate before
+anyone notices. This agent is a **check-in chatbot** that proactively asks how the
+patient is doing after starting a treatment, tracks side effects over time, and
+**flags red-flag symptoms early** — supportive monitoring, not a diagnosis.
+
+### How it works (chat + deterministic safety)
+- **Conversation → Gemini:** warm, brief check-in that pulls symptoms out of free text.
+- **Decision → deterministic tools:**
+  - `get_active_medications()` — reads the patient's current meds from the **memory layer**.
+  - `check_side_effect(medication, symptom)` — classifies the symptom as `common`
+    vs `serious` against a medication side-effect KB (+ universal emergency red
+    flags) and returns an **escalate** flag.
+  - `log_side_effect(...)` — writes the report to memory, building a **side-effect timeline**.
+
+```
+"How are you feeling since starting Metformin?"
+        │  patient: "some nausea, and lately muscle pain + weakness"
+        ▼
+get_active_medications() → [Metformin, Iron]   (from memory)
+check_side_effect(Metformin, "nausea")        → common   (reassure, monitor)
+check_side_effect(Metformin, "muscle pain")   → SERIOUS  → escalate=true
+        ▼
+"⚠️ Muscle pain + weakness on Metformin can signal a serious reaction —
+ please contact your doctor now."   + logged to memory timeline
+```
+
+### Escalation rule (the "before it's too late" part)
+`escalate=true` for any medication-specific **serious** symptom or any **universal
+red flag** (chest pain, trouble breathing, fainting, uncontrolled bleeding, …).
+Common/mild effects get reassurance + what to watch for.
+
+### A2A skill
+```
+skill: side_effect_followup
+in:  patient's check-in replies (text)
+out: per-symptom { severity, escalate, guidance } + a logged side-effect timeline
+```
+
+> [!NOTE]
+> **Proactive scheduling** (auto check-ins N days post-treatment via a scheduler /
+> push notification) is a natural next step; today the agent runs the check-in
+> when invoked. The memory timeline already supports trend tracking across visits.
+
+---
+
 ## 🏗️ Full Architecture with Google Services
 
 ```mermaid
@@ -636,6 +685,11 @@ graph TB
     subgraph Agent4["👶 Agent 4: Cry Insight"]
         GeminiAudio["Gemini 2.5<br/>(multimodal audio)"]
         CryKB["Cry Guidance KB<br/>(+ escalation)"]
+    end
+
+    subgraph Agent5["🔔 Agent 5: Follow-up"]
+        GeminiChat["Gemini 2.5<br/>(check-in chat)"]
+        SideKB["Side-effect KB<br/>(+ escalation)"]
     end
 
     subgraph Storage["Google Cloud Storage Layer"]
@@ -682,6 +736,7 @@ graph TB
     Router -->|A2A| Agent2
     Router -->|A2A| Agent3
     Router -->|A2A| Agent4
+    Router -->|A2A| Agent5
 
     %% Agent-internal pipelines
     DocAI -->|Extracted Text| GeminiPII
@@ -703,6 +758,7 @@ graph TB
     ADK -->|build| Agent2
     ADK -->|build| Agent3
     ADK -->|build| Agent4
+    ADK -->|build| Agent5
 
     %% Human-in-the-loop gate before a doc is ever shared/indexed
     RedactEngine -->|70-90% flagged| ReviewGate
@@ -714,6 +770,7 @@ graph TB
     Agent2 -.->|read / write| Memory
     Agent3 -.->|read / write| Memory
     Agent4 -.->|read / write| Memory
+    Agent5 -.->|read / write| Memory
 
     %% Cross-cutting
     Client --> FireAuth
