@@ -543,6 +543,68 @@ Response: {
 
 ---
 
+## Agent 4: 👶 Infant Cry Insight Agent
+
+### Purpose
+For new mothers (our persona Priya is postpartum-bound), a crying infant is
+stressful and ambiguous. This agent lets a caregiver **record the cry** and get
+supportive insight into the likely reason — *framed explicitly as assistive
+insight, not a medical diagnosis.*
+
+### Hybrid design (perception vs. decision)
+- **Perception → Gemini multimodal:** the recorded audio is sent to **Gemini 2.5**
+  (native audio input via `google.genai` `Blob`/`Part.from_bytes`), which picks
+  the most likely category.
+- **Decision → deterministic tool:** `cry_guidance(category, confidence)` maps the
+  category to caregiver guidance + a **safety escalation rule**, and logs the
+  event to the **memory layer**. Medical guidance is never left to model
+  improvisation.
+
+```
+Caregiver taps Record → 10-15s of infant cry (audio)
+        │
+        ▼
+┌─────────────────────────────┐
+│  Gemini 2.5 (multimodal)    │  ← listens to audio, classifies category
+└──────────┬──────────────────┘
+           │ category + confidence
+           ▼
+┌─────────────────────────────┐
+│  cry_guidance() tool         │  ← guidance + soothing tips + ESCALATION rule
+│  (deterministic KB)          │     + writes event to memory (last_cry_category)
+└──────────┬──────────────────┘
+           ▼
+   Likely reason · confidence · soothing tips · safety note · disclaimer
+```
+
+### Categories & escalation
+Categories follow the open **Donate-a-Cry corpus** taxonomy: `hungry`, `tired`,
+`discomfort`, `burping`, `belly_pain`, plus an explicit `pain_or_distress`.
+**Escalation** (recommend contacting a pediatrician) is forced for
+`belly_pain` / `pain_or_distress`, for an unrecognized category, or when
+confidence < 0.5 — a lightweight HITL-style safety gate.
+
+### Dataset
+- **Donate-a-Cry corpus** (open) for the taxonomy and (optionally) few-shot
+  grounding / a small trained classifier tool later. Baby Chillanto (restricted)
+  and Ubenwa/CryCeleb (different task) noted but not used.
+- Runtime needs no dataset: Gemini does the perception; the KB does the decision.
+
+### A2A skill
+```
+skill: cry_insight   (defaultInputModes: audio/wav, audio/mpeg, audio/ogg, text/plain)
+in:  recorded cry audio (+ optional caregiver text)
+out: { category, label, confidence, likely_cause, soothing_tips[], escalate, safety_note, disclaimer }
+```
+
+> [!WARNING]
+> **Credibility framing:** ship this as "cry **insight**," never "translation," and
+> always show the disclaimer. Cry classification is modest-accuracy and not
+> clinically validated — over-claiming costs marks with technical judges and
+> creates medical-liability risk.
+
+---
+
 ## 🏗️ Full Architecture with Google Services
 
 ```mermaid
@@ -569,6 +631,11 @@ graph TB
     subgraph Agent3["🥗 Agent 3: Diet Substitution"]
         GeminiDiet["Gemini 2.5 Pro<br/>(Nutrition Matching)"]
         NutritionKB["Nutrition Knowledge<br/>Base"]
+    end
+
+    subgraph Agent4["👶 Agent 4: Cry Insight"]
+        GeminiAudio["Gemini 2.5<br/>(multimodal audio)"]
+        CryKB["Cry Guidance KB<br/>(+ escalation)"]
     end
 
     subgraph Storage["Google Cloud Storage Layer"]
@@ -614,6 +681,7 @@ graph TB
     Router -->|A2A| Agent1
     Router -->|A2A| Agent2
     Router -->|A2A| Agent3
+    Router -->|A2A| Agent4
 
     %% Agent-internal pipelines
     DocAI -->|Extracted Text| GeminiPII
@@ -634,6 +702,7 @@ graph TB
     ADK -->|build| Agent1
     ADK -->|build| Agent2
     ADK -->|build| Agent3
+    ADK -->|build| Agent4
 
     %% Human-in-the-loop gate before a doc is ever shared/indexed
     RedactEngine -->|70-90% flagged| ReviewGate
@@ -644,6 +713,7 @@ graph TB
     Agent1 -.->|read / write| Memory
     Agent2 -.->|read / write| Memory
     Agent3 -.->|read / write| Memory
+    Agent4 -.->|read / write| Memory
 
     %% Cross-cutting
     Client --> FireAuth

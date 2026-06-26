@@ -1,0 +1,19 @@
+services:
+  cry_analyzer:
+    build: .
+    container_name: medsync-cry-analyzer
+    ports:
+      - "5004:5000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=5000
+      - GOOGLE_GENAI_USE_VERTEXAI=FALSE
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - MEDSYNC_MODEL=${MEDSYNC_MODEL:-gemini-2.5-flash}
+      - MEMORY_URL=${MEMORY_URL:-http://memory:8090}
+    networks:
+      - agents-net
+
+networks:
+  agents-net:
+    driver: bridge

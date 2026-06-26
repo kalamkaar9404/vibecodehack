@@ -1,0 +1,23 @@
+{
+  "name": "cry_analyzer",
+  "description": "Analyzes a recorded infant cry from audio and gives the caregiver supportive insight into the likely reason (hunger, tiredness, discomfort, burping, belly pain, or distress) with soothing tips and safety escalation. Supportive insight, not a diagnosis.",
+  "version": "1.0.0",
+  "url": "http://localhost:5000/",
+  "defaultInputModes": ["audio/wav", "audio/mpeg", "audio/ogg", "text/plain"],
+  "defaultOutputModes": ["text/plain"],
+  "capabilities": { "streaming": true },
+  "skills": [
+    {
+      "id": "cry_insight",
+      "name": "Infant cry insight",
+      "description": "Classify a recorded infant cry into a likely reason and return soothing guidance with safety escalation.",
+      "tags": ["infant", "baby", "cry", "audio", "postpartum", "caregiver", "newborn"],
+      "examples": [
+        "Why is my baby crying? (audio attached)",
+        "Translate my infant's cry",
+        "My newborn won't stop crying, here's a recording",
+        "What does this cry mean?"
+      ]
+    }
+  ]
+}

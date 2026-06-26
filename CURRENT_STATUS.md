@@ -4,10 +4,10 @@
 > Last updated: **2026-06-26**
 > Workflow target: `Gemini CLI + ADK → Nasiko → Cloud Run`
 
-**Overall progress: ~40%.** The hardest, most differentiating pieces — real
-agent engineering with **ADK + A2A**, plus a working **memory layer** — are built
-and verified. Deployment, Vertex AI depth, and the live Nasiko orchestration are
-the main gaps.
+**Overall progress: ~43%.** The hardest, most differentiating pieces — real
+agent engineering with **ADK + A2A** (now **4 agents**, incl. a Gemini-multimodal
+infant-cry agent), plus a working **memory layer** — are built and verified.
+Deployment, Vertex AI depth, and the live Nasiko orchestration are the main gaps.
 
 ---
 
@@ -38,7 +38,7 @@ the main gaps.
 ## ✅ What's Done
 
 ### Backend / Agents (`agents/`)
-Three ADK `LlmAgent`s exposed over A2A in Nasiko's expected layout
+Four ADK `LlmAgent`s exposed over A2A in Nasiko's expected layout
 (`Agentcard.json` + `Dockerfile` + `src/__main__.py`, serving on `:5000`).
 Real domain logic lives in deterministic **tools**; Gemini orchestrates + writes
 the natural language.
@@ -48,6 +48,7 @@ the natural language.
 | `anonymizer` | `detect_pii`, `apply_redaction` | 5 PII found, status `NEEDS_REVIEW` (name/doctor flagged 0.81–0.82 → drives HITL) |
 | `retriever` | `search_records` | "diabetes history" → Discharge Summary + Lab Report + Prescription, with citations |
 | `diet` | `find_substitutes` | quinoa/avocado/chia → dalia/banana+flaxseed/sabja + pregnancy safety note |
+| `cry_analyzer` | `cry_guidance` | Gemini multimodal (audio) → category; tool maps to guidance + escalation (belly_pain/pain/low-conf escalate) + logs to memory. Supportive insight, not diagnosis |
 
 Also: combined + per-agent `docker-compose.yml`, `requirements.txt`,
 `.env.example`, `agents/README.md`. Anonymizer's A2A server confirmed serving
@@ -76,13 +77,14 @@ its agent card at HTTP 200.
 | Agent 1 Anonymizer | ~70% | ADK + PII tools + HITL flagging; no Document AI / Firestore |
 | Agent 2 Retriever | ~55% | ADK + cited RAG; **no Vertex embeddings / Firestore** |
 | Agent 3 Diet | ~70% | ADK + nutrition KB + safety; KB is a focused subset |
+| Agent 4 Cry Insight | ~65% | ADK + Gemini multimodal audio + guidance/escalation KB + memory logging; needs live audio test (key) + UI record button |
 | Orchestrator (Nasiko) | ~25% | cloned + configured; not running, agents not registered |
 | Memory layer | ~80% | **built + verified** — `memory-service/` (FastAPI, 4 tiers, Gemini embeddings + fallback); all 3 agents read-before/write-after via ADK callbacks; cross-session "learns once" loop confirmed. Remaining: Firestore backend + UI surfacing |
 | HITL gate | ~40% | agent flags correctly; no `/api/review` endpoints or UI |
 | Remaining UI (dashboard, doctor chat, upload, records, review queue) | ~10% | only diet exists; **login still 404s** |
 | Google infra (Firestore/Storage/DocAI/Auth/Vertex) | ~3% | |
 | Cloud Run deployment | 0% | mandatory, not begun |
-| **Overall** | **~40%** | |
+| **Overall** | **~43%** | |
 
 ---
 

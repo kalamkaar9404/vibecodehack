@@ -1,10 +1,10 @@
-# Runs the 3 MedSync A2A agents + the shared memory service together.
+# Runs the 4 MedSync A2A agents + the shared memory service together.
 # For local dev / testing without the full Nasiko stack. Each agent also has
 # its own docker-compose.yml for individual deployment into Nasiko.
 #
 #   GOOGLE_API_KEY=... docker compose up --build
 #
-# Agent cards: http://localhost:5001|5002|5003/.well-known/agent-card.json
+# Agent cards: http://localhost:5001|5002|5003|5004/.well-known/agent-card.json
 # Memory API:  http://localhost:8090/health
 services:
   memory:
@@ -47,6 +47,18 @@ services:
     build: ./diet
     container_name: medsync-diet
     ports: ["5003:5000"]
+    depends_on: [memory]
+    environment:
+      - GOOGLE_GENAI_USE_VERTEXAI=FALSE
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - MEDSYNC_MODEL=${MEDSYNC_MODEL:-gemini-2.5-flash}
+      - MEMORY_URL=http://memory:8090
+    networks: [agents-net]
+
+  cry_analyzer:
+    build: ./cry_analyzer
+    container_name: medsync-cry-analyzer
+    ports: ["5004:5000"]
     depends_on: [memory]
     environment:
       - GOOGLE_GENAI_USE_VERTEXAI=FALSE
