@@ -1,0 +1,70 @@
+{
+  "source": "Donate-a-Cry Corpus",
+  "url": "https://github.com/gveres/donateacry-corpus",
+  "license": "See source repository (research / educational use).",
+  "description": "Labeled infant cry recordings (cleaned subset). Used as the category taxonomy and reference sample set for the MedSync Cry Insight agent.",
+  "total_corpus_samples": 457,
+  "samples_committed": 30,
+  "categories": {
+    "belly_pain": {
+      "corpus_count": 16,
+      "sample_count": 6,
+      "samples": [
+        "549a46d8-9c84-430e-ade8-97eae2bef787-1430130772174-1.7-m-48-bp.wav",
+        "643D64AD-B711-469A-AF69-55C0D5D3E30F-1430138495-1.0-m-72-bp.wav",
+        "643D64AD-B711-469A-AF69-55C0D5D3E30F-1430138506-1.0-m-72-bp.wav",
+        "643D64AD-B711-469A-AF69-55C0D5D3E30F-1430138514-1.0-m-72-bp.wav",
+        "643D64AD-B711-469A-AF69-55C0D5D3E30F-1430138524-1.0-m-72-bp.wav",
+        "643D64AD-B711-469A-AF69-55C0D5D3E30F-1430138536-1.0-m-72-bp.wav"
+      ]
+    },
+    "burping": {
+      "corpus_count": 8,
+      "sample_count": 6,
+      "samples": [
+        "5afc6a14-a9d8-45f8-b31d-c79dd87cc8c6-1430757039803-1.7-m-48-bu.wav",
+        "79FF400A-97E2-4701-987D-C7C850D5523C-1430089648-1.0-f-48-bu.wav",
+        "7A864194-4B6B-4850-ABBF-0C2A8170107B-1436846915-1.1-f-26-bu.wav",
+        "7E4B9C14-F955-4BED-9B03-7F3096A6CBFF-1430232208-1.0-f-26-bu.wav",
+        "7E4B9C14-F955-4BED-9B03-7F3096A6CBFF-1430540826-1.0-f-26-bu.wav",
+        "AEA8AE04-D00E-48A7-8A0B-6D87E2175121-1430563241-1.0-f-72-bu.wav"
+      ]
+    },
+    "discomfort": {
+      "corpus_count": 27,
+      "sample_count": 6,
+      "samples": [
+        "10A40438-09AA-4A21-83B4-8119F03F7A11-1430925142-1.0-f-26-dc.wav",
+        "11417AC2-DCC9-48CD-8177-CA8665E51B2F-1436881512-1.1-m-48-dc.wav",
+        "1309B82C-F146-46F0-A723-45345AFA6EA8-1430703937-1.0-f-48-dc.wav",
+        "1309B82C-F146-46F0-A723-45345AFA6EA8-1430704008-1.0-f-48-dc.wav",
+        "1309B82C-F146-46F0-A723-45345AFA6EA8-1432801693-1.1-f-26-dc.wav",
+        "1309B82C-F146-46F0-A723-45345AFA6EA8-1432801703-1.1-f-26-dc.wav"
+      ]
+    },
+    "hungry": {
+      "corpus_count": 382,
+      "sample_count": 6,
+      "samples": [
+        "02c3b725-26e4-4a2c-9336-04ddc58836d9-1430726196216-1.7-m-04-hu.wav",
+        "02ead89b-aa02-453e-8b83-6ebde9fe7551-1430233132879-1.7-m-26-hu.wav",
+        "035c6b30-a145-42b9-8d0f-445cd9003d2c-1435948197257-1.7-m-04-hu.wav",
+        "03abcb8f-400a-47d8-ad82-7e4586cc06be-1431864192133-1.7-f-48-hu.wav",
+        "045C5483-69E1-4BEC-B1D8-9286D174B9B2-1430102996-1.0-m-04-hu.wav",
+        "04c3386b-e6bc-4bd0-8456-d46ae21a73fc-1435305829013-1.7-f-26-hu.wav"
+      ]
+    },
+    "tired": {
+      "corpus_count": 24,
+      "sample_count": 6,
+      "samples": [
+        "03ADDCFB-354E-416D-BF32-260CF47F7060-1433658024-1.1-f-04-ti.wav",
+        "06c4cfa2-7fa6-4fda-91a1-ea186a4acc64-1430029221058-1.7-f-26-ti.wav",
+        "06c4cfa2-7fa6-4fda-91a1-ea186a4acc64-1430029237378-1.7-f-26-ti.wav",
+        "06c4cfa2-7fa6-4fda-91a1-ea186a4acc64-1430029246453-1.7-f-26-ti.wav",
+        "1309B82C-F146-46F0-A723-45345AFA6EA8-1430059864-1.0-f-04-ti.wav",
+        "1309B82C-F146-46F0-A723-45345AFA6EA8-1431172241-1.0-f-48-ti.wav"
+      ]
+    }
+  }
+}

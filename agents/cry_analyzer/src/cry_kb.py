@@ -1,14 +1,43 @@
 """Infant-cry guidance knowledge base.
 
 Maps a cry *category* (perceived by Gemini's multimodal audio understanding)
-to deterministic, supportive guidance + a safety/escalation rule. Categories
-follow the widely-used Donate-a-Cry corpus taxonomy, plus an explicit
-distress/pain escalation path.
+to deterministic, supportive guidance + a safety/escalation rule. The category
+taxonomy and reference samples come from the open-source **Donate-a-Cry corpus**
+(see ../data/donateacry/), loaded from its manifest at runtime.
 
 This is the deterministic half of the hybrid: Gemini classifies the audio, this
 KB decides what to *say* and when to escalate — so medical guidance is never
 left to model improvisation.
 """
+
+import json
+import os
+
+# --------------------------------------------------------------------------- #
+#  Donate-a-Cry corpus manifest (taxonomy + reference sample counts)
+# --------------------------------------------------------------------------- #
+_MANIFEST_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(__file__)), "data", "donateacry", "manifest.json"
+)
+try:
+    with open(_MANIFEST_PATH, encoding="utf-8") as _f:
+        CORPUS = json.load(_f)
+except Exception:
+    CORPUS = {"categories": {}, "total_corpus_samples": 0, "source": "Donate-a-Cry Corpus"}
+
+
+def corpus_reference(category: str) -> str:
+    """Dataset-grounding note for a category, from the Donate-a-Cry manifest."""
+    cat = (category or "").strip().lower().replace(" ", "_")
+    info = (CORPUS.get("categories") or {}).get(cat)
+    total = CORPUS.get("total_corpus_samples", 0)
+    if info:
+        return (
+            f"Grounded in the Donate-a-Cry corpus: {info['corpus_count']} labeled "
+            f"'{cat}' reference clips ({total} total in corpus)."
+        )
+    return f"Category taxonomy from the Donate-a-Cry corpus ({total} labeled clips)."
+
 
 DISCLAIMER = (
     "This is AI-assisted cry insight to support a caregiver's judgement — "
@@ -85,5 +114,6 @@ def lookup(category: str, confidence: float) -> dict:
         "soothing_tips": entry["soothing"],
         "escalate": escalate,
         "safety_note": safety_note,
+        "reference": corpus_reference(key),
         "disclaimer": DISCLAIMER,
     }

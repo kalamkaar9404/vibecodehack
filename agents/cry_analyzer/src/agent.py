@@ -58,6 +58,8 @@ BASE_INSTRUCTION = (
     "2. 2-3 soothing suggestions.\n"
     "3. If `escalate` is true, make the safety note PROMINENT (recommend "
     "contacting a pediatrician).\n"
+    "4. Briefly mention the dataset grounding from the `reference` field "
+    "(the Donate-a-Cry corpus the categories come from).\n"
     "ALWAYS end with the disclaimer that this is supportive insight, not a "
     "medical diagnosis. If no audio was provided, ask the caregiver to record "
     "10-15 seconds of the cry."

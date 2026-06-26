@@ -49,7 +49,7 @@ the natural language.
 | `anonymizer` | `detect_pii`, `apply_redaction` | 5 PII found, status `NEEDS_REVIEW` (name/doctor flagged 0.81–0.82 → drives HITL) |
 | `retriever` | `search_records` | "diabetes history" → Discharge Summary + Lab Report + Prescription, with citations |
 | `diet` | `find_substitutes` | quinoa/avocado/chia → dalia/banana+flaxseed/sabja + pregnancy safety note |
-| `cry_analyzer` | `cry_guidance` | Gemini multimodal (audio) → category; tool maps to guidance + escalation (belly_pain/pain/low-conf escalate) + logs to memory. Supportive insight, not diagnosis |
+| `cry_analyzer` | `cry_guidance` | Gemini multimodal (audio) → category; tool maps to guidance + escalation (belly_pain/pain/low-conf escalate) + logs to memory. Taxonomy + reference samples from the **Donate-a-Cry corpus** (30 clips committed, 457 cited via manifest). Supportive insight, not diagnosis |
 | `followup` | `get_active_medications`, `check_side_effect`, `log_side_effect` | post-treatment check-in; metformin+muscle pain → SERIOUS/escalate, nausea → common; reads meds from memory, logs side-effect timeline |
 
 Also: combined + per-agent `docker-compose.yml`, `requirements.txt`,
@@ -79,7 +79,7 @@ its agent card at HTTP 200.
 | Agent 1 Anonymizer | ~70% | ADK + PII tools + HITL flagging; no Document AI / Firestore |
 | Agent 2 Retriever | ~55% | ADK + cited RAG; **no Vertex embeddings / Firestore** |
 | Agent 3 Diet | ~70% | ADK + nutrition KB + safety; KB is a focused subset |
-| Agent 4 Cry Insight | ~65% | ADK + Gemini multimodal audio + guidance/escalation KB + memory logging; needs live audio test (key) + UI record button |
+| Agent 4 Cry Insight | ~70% | ADK + Gemini multimodal audio + guidance/escalation KB + memory logging; **Donate-a-Cry dataset committed + wired** (taxonomy/grounding via manifest); needs live audio test (key) + UI record button |
 | Agent 5 Follow-up | ~65% | ADK + side-effect KB + escalation + reads meds/logs timeline via memory; needs UI chat + (optional) scheduled check-ins |
 | Orchestrator (Nasiko) | ~25% | cloned + configured; not running, agents not registered |
 | Memory layer | ~80% | **built + verified** — `memory-service/` (FastAPI, 4 tiers, Gemini embeddings + fallback); all 3 agents read-before/write-after via ADK callbacks; cross-session "learns once" loop confirmed. Remaining: Firestore backend + UI surfacing |
